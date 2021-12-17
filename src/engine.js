@@ -28,10 +28,23 @@ class RTSP2HLS {
     });
   }
 
-  async start() {
+  async http() {
     const address = await this.hlsServer.listen(this.hlsPort, '0.0.0.0');
     console.log(`Server listening on ${address}`);
+  }
 
+  async start() {
+    const monitor = setInterval(async () => {
+      if (!this.process && this.code > 0) {
+        debug("Restarting process");
+        await this.start();
+      }
+    }, 5000);
+    await this.startProcess();
+  }
+
+  async startProcess() {
+    this.code = 0;
     this.process = spawn("ffmpeg", [ "-fflags", "nobuffer", "-rtsp_transport", "tcp", 
       "-i", this.rtspAddress, 
       "-filter_complex", "[0:v]split=2[v1][v2];[v1]copy[v1out];[v2]scale=w=1280:h=720[v2out]",
@@ -56,6 +69,7 @@ class RTSP2HLS {
     this.process.on("exit", code => {
       debug(this.process.spawnargs);
       this.process = null;
+      this.code = code;
     });
   }
 
