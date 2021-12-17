@@ -3,7 +3,7 @@
 Build container
 
 ```
-docker build -t rtsphls:local
+docker build -t rtsphls:local .
 ```
 
 Start the container streaming video from RTSP server at 172.17.28.118, port 8554 and feed called `loop`:
