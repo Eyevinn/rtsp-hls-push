@@ -37,7 +37,7 @@ class RTSP2HLS {
     const monitor = setInterval(async () => {
       if (!this.process && this.code > 0) {
         debug("Restarting process");
-        await this.start();
+        await this.startProcess();
       }
     }, 5000);
     await this.startProcess();
