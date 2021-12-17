@@ -1,0 +1,16 @@
+{
+  "name": "rtsp-hls-push",
+  "version": "0.1.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Eyevinn Technology AB <work@eyevinn.se>",
+  "license": "MIT",
+  "dependencies": {
+    "debug": "^4.3.3",
+    "fastify": "^3.25.0",
+    "fastify-static": "^4.5.0"
+  }
+}
