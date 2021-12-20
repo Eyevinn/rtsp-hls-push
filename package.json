@@ -9,7 +9,9 @@
   "author": "Eyevinn Technology AB <work@eyevinn.se>",
   "license": "MIT",
   "dependencies": {
+    "@eyevinn/hls-pull-push": "^0.2.0",
     "debug": "^4.3.3",
+    "dotenv": "^10.0.0",
     "fastify": "^3.25.0",
     "fastify-static": "^4.5.0"
   }

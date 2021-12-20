@@ -1,6 +1,9 @@
 const { spawn } = require("child_process");
 const fastify = require("fastify");
+const { HLSPullPush, MediaPackageOutput } = require("@eyevinn/hls-pull-push");
 const debug = require("debug")("rtsp2hls");
+
+const { Logger } = require("./logger.js");
 
 class RTSP2HLS {
   constructor(rtspAddress, opts) {
@@ -12,9 +15,17 @@ class RTSP2HLS {
         this.rtspUsername = opts.username;
         this.rtspPassword = opts.password;
       }
+      if (opts.output) {
+        this.output = opts.output;
+
+        this.pullPushService = new HLSPullPush(new Logger());      
+        const outputPlugin = new MediaPackageOutput();
+        this.pullPushService.registerPlugin("mediapackage", outputPlugin);  
+      }
     }
     this.rtspAddress = rtspAddress;
     this.hlsPort = (opts && opts.hlsPort) ? opts.hlsPort : 8000;
+    this.fetcherApiPort = (opts && opts.fetcherApiPort) ? opts.fetcherApiPort : 8001;
     this.hlsServer = fastify();
     this.hlsServer.register(require("fastify-static"), {
       root: "/media/hls",
@@ -41,6 +52,31 @@ class RTSP2HLS {
       }
     }, 5000);
     await this.startProcess();
+
+    if (this.pullPushService) {
+      this.pullPushService.listen(this.fetcherApiPort);
+      const plugin = this.pullPushService.getPluginFor(this.output.type);
+      let outputDest;
+      if (this.output.type === "mediapackage") {
+        outputDest = plugin.createOutputDestination({
+          ingestUrls: [ {
+            url: this.output.url,
+            username: this.output.username,
+            password: this.output.password,
+          }]
+        }, this.pullPushService.getLogger());
+      }
+      if (outputDest) {
+        const source = new URL("http://localhost:8000/master.m3u8");
+        const sessionId = this.pullPushService.startFetcher({
+          name: "rtsp",
+          url: source.href,
+          destPlugin: outputDest,
+          destPluginName: "mediapackage",
+        });
+        outputDest.attachSessionId(sessionId);
+      }
+    }    
   }
 
   async startProcess() {
