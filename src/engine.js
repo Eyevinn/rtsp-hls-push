@@ -100,9 +100,9 @@ class RTSP2HLS {
       "-map", "a:0", "-c:a:1", "aac", "-b:a:1", "96k", "-ac", "2",
       "-map", "a:0", "-c:a:2", "aac", "-b:a:2", "48k", "-ac", "2",
 
-      "-f", "hls", "-hls_time", "2", "-hls_flags", "independent_segments+delete_segments", "-hls_segment_type", "mpegts",
+      "-f", "hls", "-hls_time", "6", "-hls_flags", "independent_segments+delete_segments", "-hls_segment_type", "mpegts",
         "-hls_segment_filename", "/media/hls/master_%v_%02d.ts",
-        "-hls_list_size", "3",
+        "-hls_list_size", "10",
         "-master_pl_name", "master.m3u8",
         "-var_stream_map", "v:0,a:0 v:1,a:1 v:2,a:2", "/media/hls/master_%v.m3u8"
  ]);
