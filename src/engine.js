@@ -1,4 +1,5 @@
 const { spawn } = require("child_process");
+const { access, constants } = require("fs");
 const fastify = require("fastify");
 const { HLSPullPush, MediaPackageOutput } = require("@eyevinn/hls-pull-push");
 const debug = require("debug")("rtsp2hls");
@@ -54,6 +55,8 @@ class RTSP2HLS {
     await this.startProcess();
 
     if (this.pullPushService) {
+      await this.waitForHlsIsAvailable();
+      
       this.pullPushService.listen(this.fetcherApiPort);
       const plugin = this.pullPushService.getPluginFor(this.output.type);
       let outputDest;
@@ -129,6 +132,22 @@ class RTSP2HLS {
     }
   }
 
+  waitForHlsIsAvailable() {
+    return new Promise((resolve, reject) => {
+      let t = setInterval(() => {
+        const file = "/media/hls/master.m3u8";
+        access(file, constants.F_OK, (err) => {
+          if (!err) {
+            clearInterval(t);
+            resolve();
+          } else {
+            debug(`${file} ${err}`);
+          }
+        });
+      }, 1000);
+    });
+  }
+  
 }
 
 module.exports = { RTSP2HLS };
