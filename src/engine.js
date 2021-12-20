@@ -46,7 +46,7 @@ class RTSP2HLS {
   async startProcess() {
     this.code = 0;
     this.process = spawn("ffmpeg", [ "-fflags", "nobuffer", "-rtsp_transport", "tcp", 
-      "-i", this.rtspAddress, 
+      "-i", this.rtspAddress, "-max_muxing_queue_size", "1024", 
       "-filter_complex", "[0:v]split=2[v1][v2];[v1]copy[v1out];[v2]scale=w=1280:h=720[v2out]",
       "-map", "[v1out]", "-c:v:0", "libx264", "-x264-params", "nal-hrd=cbr:force-cfr=1", 
         "-b:v:0", "5M", "-maxrate:v:0", "5M", "-minrate:v:0", "5M", "-bufsize:v:0", "10M", 
