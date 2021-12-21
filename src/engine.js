@@ -96,13 +96,13 @@ class RTSP2HLS {
       "-map", "[v3out]", "-c:v:2", "libx264", "-x264-params", "nal-hrd=cbr:force-cfr=1", 
         "-b:v:2", "1M", "-maxrate:v:2", "1M", "-minrate:v:2", "1M", "-bufsize:v:2", "1M", 
         "-preset", "ultrafast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-      "-map", "a:0", "-c:a:0", "aac", "-b:a:0", "96k", "-ac", "2",
-      "-map", "a:0", "-c:a:1", "aac", "-b:a:1", "96k", "-ac", "2",
-      "-map", "a:0", "-c:a:2", "aac", "-b:a:2", "48k", "-ac", "2",
+      "-map", "a:0", "-c:a:0", "aac", "-b:a:0", "96k", "-ar", "48000", "-ac", "2",
+      "-map", "a:0", "-c:a:1", "aac", "-b:a:1", "96k", "-ar", "48000", "-ac", "2",
+      "-map", "a:0", "-c:a:2", "aac", "-b:a:2", "48k", "-ar", "48000", "-ac", "2",
 
-      "-f", "hls", "-hls_time", "6", "-hls_flags", "independent_segments+delete_segments", "-hls_segment_type", "mpegts",
+      "-f", "hls", "-hls_time", "10", "-hls_flags", "independent_segments+delete_segments", "-hls_segment_type", "mpegts",
         "-hls_segment_filename", "/media/hls/master_%v_%02d.ts",
-        "-hls_list_size", "10",
+        "-hls_list_size", "6",
         "-master_pl_name", "master.m3u8",
         "-var_stream_map", "v:0,a:0 v:1,a:1 v:2,a:2", "/media/hls/master_%v.m3u8"
  ]);
