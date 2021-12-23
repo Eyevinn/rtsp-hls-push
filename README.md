@@ -1,29 +1,29 @@
-## Setup
+Docker container that takes an RTSP video feed, transcode to HLS and push to AWS MediaPackage origin (optional).
 
-Build container
+Service based on [ffmpeg](https://ffmpeg.org) and the NPM library [@eyevinn/hls-pull-push](https://www.npmjs.com/package/@eyevinn/hls-pull-push)
 
-```
-docker build -t rtsphls:local .
-```
+## Usage
 
-Start the container streaming video from RTSP server at 172.17.28.118, port 8554 and feed called `loop`:
+Assume a camera publishing a video feed to RTSP address `rtsp://<username>:<password>@10.0.0.10/stream1`.
 
 ```
-docker run --rm -e RTSP=rtsp://172.17.28.118:8554/loop -p 8000:8000 rtsphls:local
+docker run --rm -e RTSP=rtsp://<username>:<password>@10.0.0.10/stream1 -p 8000:8000 eyevinntechnology/rtsphls:<version>
 ```
 
-Preview the HLS by pointing your browser to `http://localhost:8000/master.m3u8`
+Then you would have access to the HLS on `http://localhost:8000/master.m3u8`
 
-## Notes
+### Push to AWS MediaPackage origin
 
-```
-docker run --rm -it -e RTSP_PROTOCOLS=tcp -p 8554:8554 aler9/rtsp-simple-server
-```
+If you wish to also push the HLS to an AWS MediaPackage origin start the container with the following options added:
 
 ```
-ffmpeg -stream_loop -1 -re -i ~/Downloads/probably-the-best-10s.mp4 -f rtsp rtsp://127.0.0.1:8554/live
+docker run --rm -e RTSP=rtsp://<username>:<password>@10.0.0.10/stream1 -e MEDIAPACKAGE_URL=<ingesturl> -e MEDIAPACKAGE_USERNAME=<username> -e MEDIAPACKAGE_PASSWORD=<password> -p 8000:8000 eyevinntechnology/rtsphls:<version>
 ```
 
-```
-docker run --rm -e RTSP=rtsp://host.docker.internal:8554/beer -p 8000:8000 rtsphls:dev
-```
+# About Eyevinn Technology
+
+Eyevinn Technology is an independent consultant firm specialized in video and streaming. Independent in a way that we are not commercially tied to any platform or technology vendor.
+
+At Eyevinn, every software developer consultant has a dedicated budget reserved for open source development and contribution to the open source community. This give us room for innovation, team building and personal competence development. And also gives us as a company a way to contribute back to the open source community.
+
+Want to know more about Eyevinn and how it is to work here. Contact us at work@eyevinn.se!
