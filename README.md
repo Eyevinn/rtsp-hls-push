@@ -2,6 +2,8 @@ Docker container that takes an RTSP video feed, transcode to HLS and push to AWS
 
 Service based on [ffmpeg](https://ffmpeg.org) and the NPM library [@eyevinn/hls-pull-push](https://www.npmjs.com/package/@eyevinn/hls-pull-push)
 
+![Diagram of RTSP HLS PUSH](./rtsp_hls_push.png)
+
 ## Usage
 
 Assume a camera publishing a video feed to RTSP address `rtsp://<username>:<password>@10.0.0.10/stream1`.
