@@ -7,7 +7,8 @@ Service based on [ffmpeg](https://ffmpeg.org) and the NPM library [@eyevinn/hls-
 Assume a camera publishing a video feed to RTSP address `rtsp://<username>:<password>@10.0.0.10/stream1`.
 
 ```
-docker run --rm -e RTSP=rtsp://<username>:<password>@10.0.0.10/stream1 -p 8000:8000 eyevinntechnology/rtsphls:<version>
+docker run --rm -e RTSP=rtsp://<username>:<password>@10.0.0.10/stream1 \
+  -p 8000:8000 eyevinntechnology/rtsphls:<version>
 ```
 
 Then you would have access to the HLS on `http://localhost:8000/master.m3u8`
@@ -17,7 +18,11 @@ Then you would have access to the HLS on `http://localhost:8000/master.m3u8`
 If you wish to also push the HLS to an AWS MediaPackage origin start the container with the following options added:
 
 ```
-docker run --rm -e RTSP=rtsp://<username>:<password>@10.0.0.10/stream1 -e MEDIAPACKAGE_URL=<ingesturl> -e MEDIAPACKAGE_USERNAME=<username> -e MEDIAPACKAGE_PASSWORD=<password> -p 8000:8000 eyevinntechnology/rtsphls:<version>
+docker run --rm -e RTSP=rtsp://<username>:<password>@10.0.0.10/stream1 \ 
+  -e MEDIAPACKAGE_URL=<ingesturl> \
+  -e MEDIAPACKAGE_USERNAME=<username> \
+  -e MEDIAPACKAGE_PASSWORD=<password> \
+  -p 8000:8000 eyevinntechnology/rtsphls:<version>
 ```
 
 # About Eyevinn Technology
