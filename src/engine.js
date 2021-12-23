@@ -96,9 +96,9 @@ class RTSP2HLS {
       "-map", "[v3out]", "-c:v:2", "libx264", "-x264-params", "nal-hrd=cbr:force-cfr=1", 
         "-b:v:2", "1M", "-maxrate:v:2", "1M", "-minrate:v:2", "1M", "-bufsize:v:2", "1M", 
         "-preset", "ultrafast", "-g", "48", "-sc_threshold", "0", "-keyint_min", "48",
-      "-map", "a:0", "-c:a:0", "aac", "-b:a:0", "128k", "-ar", "48000", "-ac", "2",
+      "-map", "a:0", "-c:a:0", "aac", "-b:a:0", "256k", "-ar", "48000", "-ac", "2",
       "-map", "a:0", "-c:a:1", "aac", "-b:a:1", "128k", "-ar", "48000", "-ac", "2",
-      "-map", "a:0", "-c:a:2", "aac", "-b:a:2", "96k", "-ar", "48000", "-ac", "2",
+      "-map", "a:0", "-c:a:2", "aac", "-b:a:2", "128k", "-ar", "48000", "-ac", "2",
 
       "-f", "hls", "-hls_time", "10", "-hls_flags", "independent_segments+delete_segments", "-hls_segment_type", "mpegts",
         "-hls_segment_filename", "/media/hls/master_%v_%02d.ts",
