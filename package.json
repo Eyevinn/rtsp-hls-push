@@ -4,6 +4,7 @@
   "description": "RTSP to HLS and push to AWS MediaPackage",
   "main": "server.js",
   "scripts": {
+    "postversion": "git push && git push --tags",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Eyevinn Technology AB <work@eyevinn.se>",
