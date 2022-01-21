@@ -1,6 +1,6 @@
 {
   "name": "rtsp-hls-push",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "RTSP to HLS and push to AWS MediaPackage",
   "main": "server.js",
   "scripts": {
