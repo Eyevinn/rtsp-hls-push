@@ -48,7 +48,10 @@ class RTSP2HLS {
   async start() {
     const monitor = setInterval(async () => {
       if (!this.process && this.code > 0) {
-        debug("Restarting process");
+        debug(`Process existed with code ${this.code}. Restarting process`);
+        await this.startProcess();
+      } else if (!this.process && !this.wantsToStop) {
+        debug("Process stopped but should be running. Restarting process"); 
         await this.startProcess();
       }
     }, 5000);
@@ -83,6 +86,7 @@ class RTSP2HLS {
   }
 
   async startProcess() {
+    this.wantsToStop = false;
     this.code = 0;
     this.process = spawn("ffmpeg", [ "-fflags", "nobuffer", "-rtsp_transport", "tcp", 
       "-i", this.rtspAddress, "-max_muxing_queue_size", "1024", 
@@ -127,6 +131,7 @@ class RTSP2HLS {
       }, 1000);
     });
     if (this.process) {
+      this.wantsToStop = true;
       this.process.kill("SIGKILL");
       await waitForKilled();
     }
