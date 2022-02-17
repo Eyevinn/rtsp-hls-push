@@ -50,10 +50,12 @@ class RTSP2HLS {
     const monitor = setInterval(async () => {
       if (!this.process && this.code > 0) {
         debug(`Process existed with code ${this.code}. Restarting process`);
+        this.cleanUpFiles();
         await this.startProcess();
         await this.restartPullPushProcess();
       } else if (!this.process && !this.wantsToStop) {
         debug("Process stopped but should be running. Restarting process"); 
+        this.cleanUpFiles();
         await this.startProcess();
         await this.restartPullPushProcess();
       }
@@ -105,7 +107,6 @@ class RTSP2HLS {
   }
 
   async startProcess() {
-    this.cleanUpFiles();
     this.wantsToStop = false;
     this.code = 0;
     this.process = spawn("ffmpeg", [ "-fflags", "nobuffer", "-rtsp_transport", "tcp", 
