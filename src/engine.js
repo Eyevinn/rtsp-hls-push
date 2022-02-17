@@ -105,6 +105,7 @@ class RTSP2HLS {
   }
 
   async startProcess() {
+    this.cleanUpFiles();
     this.wantsToStop = false;
     this.code = 0;
     this.process = spawn("ffmpeg", [ "-fflags", "nobuffer", "-rtsp_transport", "tcp", 
@@ -154,6 +155,11 @@ class RTSP2HLS {
       this.process.kill("SIGKILL");
       await waitForKilled();
     }
+  }
+
+  cleanUpFiles() {
+    debug("Cleaning up files");
+    fs.rmSync("/media/hls/*", { recursive: true, force: true });
   }
 
   waitForHlsIsAvailable() {
