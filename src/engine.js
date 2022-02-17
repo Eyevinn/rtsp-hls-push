@@ -27,6 +27,7 @@ class RTSP2HLS {
     this.rtspAddress = rtspAddress;
     this.hlsPort = (opts && opts.hlsPort) ? opts.hlsPort : 8000;
     this.fetcherApiPort = (opts && opts.fetcherApiPort) ? opts.fetcherApiPort : 8001;
+    this.fetcherId = null;
     this.hlsServer = fastify();
     this.hlsServer.register(require("fastify-static"), {
       root: "/media/hls",
@@ -50,39 +51,57 @@ class RTSP2HLS {
       if (!this.process && this.code > 0) {
         debug(`Process existed with code ${this.code}. Restarting process`);
         await this.startProcess();
+        await this.restartPullPushProcess();
       } else if (!this.process && !this.wantsToStop) {
         debug("Process stopped but should be running. Restarting process"); 
         await this.startProcess();
+        await this.restartPullPushProcess();
       }
     }, 5000);
     await this.startProcess();
 
     if (this.pullPushService) {
       await this.waitForHlsIsAvailable();
-      
       this.pullPushService.listen(this.fetcherApiPort);
-      const plugin = this.pullPushService.getPluginFor(this.output.type);
-      let outputDest;
-      if (this.output.type === "mediapackage") {
-        outputDest = plugin.createOutputDestination({
-          ingestUrls: [ {
-            url: this.output.url,
-            username: this.output.username,
-            password: this.output.password,
-          }]
-        }, this.pullPushService.getLogger());
-      }
-      if (outputDest) {
-        const source = new URL("http://localhost:8000/master.m3u8");
-        const sessionId = this.pullPushService.startFetcher({
-          name: "rtsp",
-          url: source.href,
-          destPlugin: outputDest,
-          destPluginName: "mediapackage",
-        });
-        outputDest.attachSessionId(sessionId);
-      }
+
+      await this.startPullPushProcess();
     }    
+  }
+
+  async restartPullPushProcess() {
+    await this.stopPullPushProcess();
+    await this.waitForHlsIsAvailable();
+    await this.startPullPushProcess();
+  }
+
+  async startPullPushProcess() {
+    const plugin = this.pullPushService.getPluginFor(this.output.type);
+    let outputDest;
+    if (this.output.type === "mediapackage") {
+      outputDest = plugin.createOutputDestination({
+        ingestUrls: [ {
+          url: this.output.url,
+          username: this.output.username,
+          password: this.output.password,
+        }]
+      }, this.pullPushService.getLogger());
+    }
+    if (outputDest) {
+      const source = new URL("http://localhost:8000/master.m3u8");
+      const sessionId = this.pullPushService.startFetcher({
+        name: "rtsp",
+        url: source.href,
+        destPlugin: outputDest,
+        destPluginName: "mediapackage",
+      });
+      outputDest.attachSessionId(sessionId);
+      this.fetcherId = sessionId;
+    }
+  }
+
+  async stopPullPushProcess() {
+    await this.pullPushService.stopFetcher(this.fetcherId);
+    this.fetcherId = null;
   }
 
   async startProcess() {
