@@ -55,17 +55,19 @@ class RTSP2HLS {
   async start() {
     const monitor = setInterval(async () => {
       if (!this.process && this.code > 0) {
-        debug(`Process existed with code ${this.code}. Restarting process`);
+        debug(`Process exited with code ${this.code}. Restarting process`);
+        await this.stopPullPushProcess();
         this.cleanUpFiles();
         await sleep(2000); // grace period
         await this.startProcess();
-        await this.restartPullPushProcess();
+        await this.startPullPushProcess();
       } else if (!this.process && !this.wantsToStop) {
         debug("Process stopped but should be running. Restarting process"); 
+        await this.stopPullPushProcess();
         this.cleanUpFiles();
         await sleep(2000); // grace period
         await this.startProcess();
-        await this.restartPullPushProcess();
+        await this.startPullPushProcess();
       }
     }, 5000);
     await this.startProcess();
