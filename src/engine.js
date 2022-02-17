@@ -159,7 +159,7 @@ class RTSP2HLS {
 
   cleanUpFiles() {
     debug("Cleaning up files");
-    rmSync("/media/hls/*", { recursive: true, force: true });
+    rmSync("/media/hls/master.m3u8", { force: true });
   }
 
   waitForHlsIsAvailable() {
