@@ -1,5 +1,5 @@
 const { spawn } = require("child_process");
-const { access, constants } = require("fs");
+const { access, constants, rmSync } = require("fs");
 const fastify = require("fastify");
 const { HLSPullPush, MediaPackageOutput } = require("@eyevinn/hls-pull-push");
 const debug = require("debug")("rtsp2hls");
@@ -159,7 +159,7 @@ class RTSP2HLS {
 
   cleanUpFiles() {
     debug("Cleaning up files");
-    fs.rmSync("/media/hls/*", { recursive: true, force: true });
+    rmSync("/media/hls/*", { recursive: true, force: true });
   }
 
   waitForHlsIsAvailable() {
