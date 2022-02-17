@@ -6,6 +6,12 @@ const debug = require("debug")("rtsp2hls");
 
 const { Logger } = require("./logger.js");
 
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 class RTSP2HLS {
   constructor(rtspAddress, opts) {
     if (!rtspAddress) {
@@ -51,11 +57,13 @@ class RTSP2HLS {
       if (!this.process && this.code > 0) {
         debug(`Process existed with code ${this.code}. Restarting process`);
         this.cleanUpFiles();
+        await sleep(2000); // grace period
         await this.startProcess();
         await this.restartPullPushProcess();
       } else if (!this.process && !this.wantsToStop) {
         debug("Process stopped but should be running. Restarting process"); 
         this.cleanUpFiles();
+        await sleep(2000); // grace period
         await this.startProcess();
         await this.restartPullPushProcess();
       }
