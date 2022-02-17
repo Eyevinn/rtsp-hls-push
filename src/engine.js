@@ -1,10 +1,16 @@
 const { spawn } = require("child_process");
-const { access, constants } = require("fs");
+const { access, constants, rmSync } = require("fs");
 const fastify = require("fastify");
 const { HLSPullPush, MediaPackageOutput } = require("@eyevinn/hls-pull-push");
 const debug = require("debug")("rtsp2hls");
 
 const { Logger } = require("./logger.js");
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 class RTSP2HLS {
   constructor(rtspAddress, opts) {
@@ -27,6 +33,7 @@ class RTSP2HLS {
     this.rtspAddress = rtspAddress;
     this.hlsPort = (opts && opts.hlsPort) ? opts.hlsPort : 8000;
     this.fetcherApiPort = (opts && opts.fetcherApiPort) ? opts.fetcherApiPort : 8001;
+    this.fetcherId = null;
     this.hlsServer = fastify();
     this.hlsServer.register(require("fastify-static"), {
       root: "/media/hls",
@@ -48,47 +55,71 @@ class RTSP2HLS {
   async start() {
     const monitor = setInterval(async () => {
       if (!this.process && this.code > 0) {
-        debug(`Process existed with code ${this.code}. Restarting process`);
+        debug(`Process exited with code ${this.code}. Restarting process`);
+        await this.stopPullPushProcess();
+        this.cleanUpFiles();
+        await sleep(2000); // grace period
         await this.startProcess();
+        await this.startPullPushProcess();
       } else if (!this.process && !this.wantsToStop) {
         debug("Process stopped but should be running. Restarting process"); 
+        await this.stopPullPushProcess();
+        this.cleanUpFiles();
+        await sleep(2000); // grace period
         await this.startProcess();
+        await this.startPullPushProcess();
       }
     }, 5000);
     await this.startProcess();
 
     if (this.pullPushService) {
       await this.waitForHlsIsAvailable();
-      
       this.pullPushService.listen(this.fetcherApiPort);
-      const plugin = this.pullPushService.getPluginFor(this.output.type);
-      let outputDest;
-      if (this.output.type === "mediapackage") {
-        outputDest = plugin.createOutputDestination({
-          ingestUrls: [ {
-            url: this.output.url,
-            username: this.output.username,
-            password: this.output.password,
-          }]
-        }, this.pullPushService.getLogger());
-      }
-      if (outputDest) {
-        const source = new URL("http://localhost:8000/master.m3u8");
-        const sessionId = this.pullPushService.startFetcher({
-          name: "rtsp",
-          url: source.href,
-          destPlugin: outputDest,
-          destPluginName: "mediapackage",
-        });
-        outputDest.attachSessionId(sessionId);
-      }
+
+      await this.startPullPushProcess();
     }    
+  }
+
+  async restartPullPushProcess() {
+    await this.stopPullPushProcess();
+    await this.waitForHlsIsAvailable();
+    await this.startPullPushProcess();
+  }
+
+  async startPullPushProcess() {
+    const plugin = this.pullPushService.getPluginFor(this.output.type);
+    let outputDest;
+    if (this.output.type === "mediapackage") {
+      outputDest = plugin.createOutputDestination({
+        ingestUrls: [ {
+          url: this.output.url,
+          username: this.output.username,
+          password: this.output.password,
+        }]
+      }, this.pullPushService.getLogger());
+    }
+    if (outputDest) {
+      const source = new URL("http://localhost:8000/master.m3u8");
+      const sessionId = this.pullPushService.startFetcher({
+        name: "rtsp",
+        url: source.href,
+        destPlugin: outputDest,
+        destPluginName: "mediapackage",
+      });
+      outputDest.attachSessionId(sessionId);
+      this.fetcherId = sessionId;
+    }
+  }
+
+  async stopPullPushProcess() {
+    await this.pullPushService.stopFetcher(this.fetcherId);
+    this.fetcherId = null;
   }
 
   async startProcess() {
     this.wantsToStop = false;
     this.code = 0;
-    this.process = spawn("ffmpeg", [ "-fflags", "nobuffer", "-rtsp_transport", "tcp", 
+    this.process = spawn("ffmpeg", [ "-y", "-fflags", "nobuffer", "-rtsp_transport", "tcp", 
       "-i", this.rtspAddress, "-max_muxing_queue_size", "1024", 
       "-filter_complex", "[0:v]split=3[v1][v2][v3];[v1]copy[v1out];[v2]scale=w=1280:h=720[v2out];[v3]scale=w=640:h=360[v3out]",
       "-map", "[v1out]", "-c:v:0", "libx264", "-x264-params", "nal-hrd=cbr:force-cfr=1", 
@@ -135,6 +166,11 @@ class RTSP2HLS {
       this.process.kill("SIGKILL");
       await waitForKilled();
     }
+  }
+
+  cleanUpFiles() {
+    debug("Cleaning up files");
+    rmSync("/media/hls/master*.m3u8", { force: true });
   }
 
   waitForHlsIsAvailable() {
