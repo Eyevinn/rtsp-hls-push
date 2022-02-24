@@ -58,18 +58,19 @@ class RTSP2HLS {
         debug(`Process exited with code ${this.code}. Restarting process`);
         await this.stopPullPushProcess();
         this.cleanUpFiles();
-        await sleep(2000); // grace period
+        await sleep(4000); // grace period
         await this.startProcess();
         await this.startPullPushProcess();
       } else if (!this.process && !this.wantsToStop) {
         debug("Process stopped but should be running. Restarting process"); 
         await this.stopPullPushProcess();
         this.cleanUpFiles();
-        await sleep(2000); // grace period
+        await sleep(4000); // grace period
         await this.startProcess();
         await this.startPullPushProcess();
       }
     }, 5000);
+    this.cleanUpFiles();
     await this.startProcess();
 
     if (this.pullPushService) {
@@ -170,7 +171,14 @@ class RTSP2HLS {
 
   cleanUpFiles() {
     debug("Cleaning up files");
-    rmSync("/media/hls/master*.m3u8", { force: true });
+    try {
+      rmSync("/media/hls/master.m3u8");
+      rmSync("/media/hls/master_0.m3u8");
+      rmSync("/media/hls/master_1.m3u8");
+      rmSync("/media/hls/master_2.m3u8");
+    } catch(e) {
+      console.log("Failed to clean up: " + e);
+    }
   }
 
   waitForHlsIsAvailable() {
