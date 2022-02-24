@@ -60,6 +60,7 @@ class RTSP2HLS {
         this.cleanUpFiles();
         await sleep(4000); // grace period
         await this.startProcess();
+        await this.waitForHlsIsAvailable();
         await this.startPullPushProcess();
       } else if (!this.process && !this.wantsToStop) {
         debug("Process stopped but should be running. Restarting process"); 
@@ -67,6 +68,7 @@ class RTSP2HLS {
         this.cleanUpFiles();
         await sleep(4000); // grace period
         await this.startProcess();
+        await this.waitForHlsIsAvailable();
         await this.startPullPushProcess();
       }
     }, 5000);
